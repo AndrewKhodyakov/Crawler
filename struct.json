@@ -1,0 +1,87 @@
+{
+    "item_folder":{
+        "tag": "body",
+        "class": null,
+        "next":{
+                "tag": "div",
+                "class":"layout-internal col-12 js-autosuggest__search-list-container",
+                "next" :{
+                    "tag": "div",
+                    "class": "l-content js-l-content clearfix",
+                    "next" :{
+                        "tag": "div",
+                        "class": "catalog-content",
+                        "next" :{
+                            "tag": "div",
+                            "class": "catalog-main catalog_list",
+                            "next" :{
+                                "tag": "div",
+                                "class": "catalog-list clearfix",
+                                "next" :{
+                                    "tag": "div",
+                                    "class": "js-catalog_before-ads",
+                                    "next" :null
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+        },
+
+    "item":{
+            "tag": "div",
+            "class": "item item_list js-catalog-item-enum clearfix item-highlight",
+            "target":null,
+            "next" :{
+                "tag": "div",
+                "class": "title description-title",
+                "target":null,
+                "next" :{
+                    "tag": "h3",
+                    "class": "description-title-link",
+                    "target":null,
+                    "next" :{
+                        "tag": "a",
+                        "class": "description-title-link",
+                        "target":"title",
+                        "next" :null
+                    }
+                }
+            }
+        },
+
+    "next_page":{
+            "tag": "div",
+            "class": "pagination js-pages",
+            "target":null,
+            "next" :[
+                {
+                "tag": "div",
+                "class": "pagination-nav clearfix",
+                "target":null,
+                "next" :{
+                    "tag": "a",
+                    "class": "pagination-page js-pagination-next",
+                    "target":"herf",
+                    "text": "Следующая страница →",
+                    "next" : null
+                    }
+                },
+                {
+                "tag": "div",
+                "class": "pagination-nav clearfix",
+                "target":null,
+                "next" :{
+                    "tag": "a",
+                    "class": "pagination-page js-pagination-next",
+                    "target":"herf",
+                    "text": "Последняя",
+                    "next" : null
+                    }
+            ]
+            }
+        },
+
+    "total_pages_count":null
+}

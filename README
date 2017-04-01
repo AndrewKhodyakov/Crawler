@@ -51,7 +51,7 @@ one item struct:
     tag:div, class = 'item item_list js-catalog-item-enum clearfix item-highlight'
         tag: div, class = 'title description-title'
             tag: h3, class = 'description-title-link'
-                tag: a, class = 'description-title-link' gination-page:w
+                tag: a, class = 'description-title-link'
 
                     target field: title ----> contain string with info
         
