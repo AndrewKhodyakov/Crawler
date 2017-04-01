@@ -9,6 +9,12 @@
 - парсинг старницы  заключается в след - супом находить структурур отвечающую
   за пагинцию и перебираем элеенты.
 
+0. GET first
+1. calc how many pages, convert first page
+2. GET next page and convert (again in many times)
+3. all save to csv.
+4. df - from csv, and calc in pandas
+
 HTML STRUCT:
 
 tag: body
