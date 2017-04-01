@@ -1,8 +1,57 @@
 Краулер для собра данных по ссылке указывающей на нужную категорию:
+
 - делает GET на указанную в аргументе ссылку, получает данные или падает если
   она битая;
+
 - находить секцию с сылкой на пагинацию - и заня максимальное число старниц
 делает GET запросы на каждую старницу и собирает их;
 
 - парсинг старницы  заключается в след - супом находить структурур отвечающую
   за пагинцию и перебираем элеенты.
+
+HTML STRUCT:
+
+tag: body
+    tag: div, class = 'layout-internal col-12 js-autosuggest__search-list-container'
+        tag:div, class = 'l-content js-l-content clearfix'
+            tag: div. class = 'catalog-content'
+
+                #---------------------------------------
+                items folder
+                
+                tag: div, class = 'catalog-main catalog_list'
+                    tag: div. class = 'catalog-list clearfix'
+                        tag: div, class = 'js-catalog_before-ads'
+
+
+                #---------------------------------------
+                pagination folder, next page link
+
+                tag: div, class = 'pagination js-pages'
+
+                    #---------------------------------------
+                    next page link
+
+                    tag: div, class = 'pagination-nav clearfix'
+                        tag: a, class = 'pagination-page js-pagination-next'
+                            target field: herf ----> contein link to enother page
+                    
+
+                    #---------------------------------------
+                    total pages count
+
+                    tag: div, class = 'pagination-pages clearfix'
+                        tag: span, class = 'pagination-page pagination-page_current'
+                            tag: a, class = 'pagination-page'
+                                target field: herf ----> contein link to last page
+                                marker - text: 'Последняя'
+
+
+one item struct:
+    tag:div, class = 'item item_list js-catalog-item-enum clearfix item-highlight'
+        tag: div, class = 'title description-title'
+            tag: h3, class = 'description-title-link'
+                tag: a, class = 'description-title-link' gination-page:w
+
+                    target field: title ----> contain string with info
+        
