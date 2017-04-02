@@ -15,7 +15,17 @@ def _get_mode(url):
     """
     Get data from url
     """
-    print('Try get data from url: ', url)
+    class  Crawler:
+        def __init__(self, path_to_struct):
+            """
+            Initialization
+            path_to_struct: path to struct.json
+            """
+            if os.path.exists(arg) is False:
+                msg = 'Check path {}'.format(arg)
+                raise FileNotFoundError(msg)
+            in_put = open(arg, 'rt')
+            self.struct = json.loaddata()
 
 def _run_unittests():
     """
@@ -99,15 +109,15 @@ js-pagination-next",
                 }
             """)
 
-            sefl.first_html = [
-                '<html><head><title>Page title</title></head>',
-                '<body><p id="firstpara" align="center">This is paragraph
-<b>one</b>'
-            ]
+            self.first_html = '<html><head><title>Page title</title></head>'
+            self.second_html = ''
 
             self.first_url = 'http://test.com/catalog/'
             self.second_url = 'http://test.com/catalog/'
-            responses.add()
+            responses.add(responses.GET, self.first_url, self.first_html,
+status=200)
+            responses.add(responses.GET, self.second_url, self.second_html,
+status=200)
 
         def test_get_html_from_url(self):
             """
