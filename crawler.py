@@ -26,7 +26,7 @@ class  Crawler:
         self._config_path = None
         self._struct = None
         self._target_url = None
-
+        self._raw_html_page = None
         if target_url:
             self._set_target_url(target_url)
 
@@ -56,6 +56,26 @@ class  Crawler:
 
         self._target_url = target_url
 
+    def _struct_wolker(self, next_tag, marker_tag, soup):
+        """
+        Parse text
+        target_folder: key with next node
+        """
+        target_data = None
+        node = self._struct.get(next_tag)
+        soup = soup
+
+        while node.get(next_tag) is not None:
+            #TODO тут берем данные из супа
+            soup.get(node.get(marker_tag))
+            #тут делаем шаг вниз в иерархии
+            soup.make_a_step_down()
+
+            node = node.get(next_tag)
+
+        return target_data
+
+
     def get_one_page(self):
         """
         get one page generator
@@ -67,8 +87,12 @@ class  Crawler:
                 resp.status_code)
             raise IOError(msg)
 
-        soup = bs4(resp.text)
-            
+        #находим структуру со списком
+        self._struct_wolker('next', 'class',bs4(resp.text))
+        #перем данные для каждого элемента
+        self._struct_wolker('next', bs4(resp.text))
+        #чекаем есть ли следующая страница - идем туда
+
         yield one_page_data
 
     def get_all_data(self):
