@@ -136,73 +136,56 @@ def _run_unittests():
             """
             setup test data
             """
-            self.struct_json = StringIO("""
-                {
-                    "item_folder":{
-                       "tag": "body",
-                       "class": null,
-                       "next":{
-                            "tag": "div",
-                            "class":"first_level",
-                            "next" :{
-                                "tag": "div",
-                                "class":"second_level",
-                                "next" :null
-                            }
-                        }
-                    },
+            struct_node = lambda tag, cls_attr, target, text, next_node:\
+                '{"tag":{0}, "class":{1}, "target":{2}, "text":{3}, "next":{4}}'.\
+                format(tag, cls_attr, target, text, next_node)
 
-                    "item":{
-                            "tag": "div",
-                            "class": "target_folder",
-                            "target":null,
-                            "next" :{
-                                "tag": "h3",
-                                "class": "Target_folder_title",
-                                "target":null,
-                                "next" :{
-                                    "tag": "a",
-                                    "class": "Target_folder_title_description",
-                                    "target":"title",
-                                    "next" :null
-                                    }
-                            }
-                    },
+            struct = '"{item_folder":{0}, "item":{1}, "next_page":{2}}'.foramt(\
+                    struct_node("body", "null", "null", "null"\
+                        struct_node("div", "first_level", "null", "null"\
+                                struct_node("div", "second_level", "text", "null", "null")
+                            )
+                        ),
+                    struct_node("div", "item", "null", "null"\
+                        struct_node("h3", "item_title", "null", "null"\
+                            struct_node("a", "item_title_desription", "title", "null", "null")
+                        )
+                    ),
+                    struct_node("div", "pagination js-pages", "null", "null"\
+                        struct_node("div", "pagination-nav clearfix", "null", "null"\
+                            struct_node("a", "pagination-nav js-pagination-next",\
+                                "herf", "Следующая страница →", "null")
+                        )
+                    )
+            )
+            print('\n', struct, '\n')
+            self.struct_json = StringIO(struct)
 
-                    "next_page":{
-                            "tag": "div",
-                            "class": "pagination js-pages",
-                            "target":null,
-                            "next" :
-                                {
-                                "tag": "div",
-                                "class": "pagination-nav clearfix",
-                                "target":null,
-                                "next" :
-                                [
-                                    {
-                                    "tag": "a",
-                                    "class": "pagination-nav
-js-pagination-next",
-                                    "target":"herf",
-                                    "text": "Следующая страница →",
-                                    "next" :null
-                                    },
-                                    {
-                                    "tag": "a",
-                                    "class": "pagination-nav
-js-pagination-next",
-                                    "target":"herf",
-                                    "text": "Последняя",
-                                    "next" :null
-                                    }
-                                ] 
-                            }
-                }
-            """)
+            head = '<html><head><title>Page title</title></head>'
+            html_node = lambda tag, cls_tag, text:'<{0} class="{1}">{2}</{0}>'.\
+                format(tag, cls_tag, text)
 
-            self.first_html = '<html><head><title>Page title</title></head>'
-            self.second_html = ''
+            first_item = html_node('div', 'first_item',\
+                 html_node('h3', 'item_title',\
+                    html_node('a', 'item_title_desription')))
+
+            second_item = 
+
+            body = '<body class=" ">{}</body>'.format(\
+                div('first_level',\
+                     div('second_level',
+                        (div('first_item', first_item) + div('second_item', second_item))
+                    )
+                )
+            )
+
+            self.first_html = head + body(\
+                div(\
+                    'first_level', div('second_level',\
+                    (div('first_item', first_item) + div('second_item', second_item))\
+                    )))
+
+            self.second_html = None
 
             self.first_url = 'http://test.com/catalog/'
             self.second_url = 'http://test.com/catalog/'
