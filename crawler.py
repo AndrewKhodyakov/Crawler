@@ -56,50 +56,63 @@ class  Crawler:
 
         self._target_url = target_url
 
-    def _struct_wolker(self, next_tag, soup):
+    def _struct_wolker(self, struct_key, soup):
         """
         Parse text
-        target_folder: key with next node
+        struct_key: ключ искомой структуры
         """
-        target_data = None
-        node = self._struct.get(next_tag)
+        out = []
+        node = self._struct.get(struct_key)
         soup = soup
 
-        while node.get(next_tag) is not None:
-#            #TODO тут берем данные из супа
-#            soup.get(node.get(marker_tag))
-#            #тут делаем шаг вниз в иерархии
-#            soup.make_a_step_down()
-#            node = node.get(next_tag)
-            pass
+        for inst in soup.body.findAll(node.get('tag')):
+            cls_attr = inst.get('class')
+            if len(inst.get('class')) !=0:
+                if inst.pop() == node.get('cls_attr'):
+                    out.append(node.get('target'))                    
 
-        return target_data
+        return out
 
-
-    def get_one_page(self):
+    def get_one_page_data(self, url):
         """
         get one page generator
         """
         one_page_data = []
-        resp = requests.get(self._target_url)
+        next_url = None
+        resp = requests.get(url)
         if resp.status_code != 200:
             msg = 'url - is not available, status code {}'.format(\
                 resp.status_code)
             raise IOError(msg)
 
-        #находим структуру со списком
-        self._struct_wolker('next', BeautifulSoup(resp.text))
-        #перем данные для каждого элемента
-        self._struct_wolker('next', BeautifulSoup(resp.text))
-        #чекаем есть ли следующая страница - идем туда
+        node = self._struct.get('items')
+        soup = BeautifulSoup(resp.text, 'html.parser')
 
-        yield one_page_data
+        for inst in soup.body.findAll(node.get('tag')):
+            cls_attr = inst.get('class')
 
-    def get_all_data(self):
+            if len(cls_attr) !=0:
+                cls_attr = cls_attr.pop()
+
+
+                if cls_attr == node.get('cls_attr'):
+                    if node.get('text') is None:
+                        one_page_data.append(node.get('target'))                    
+                    if node.get('text') == inst.get('text'):
+                        next_url = inst.get(node.get('target'))
+
+
+        yield one_page_data, next_url
+
+
+    def get_all_pages_data(self):
         """
         Get all data from target url by installed struct
         """
         all_data = []
+        soup = BeautifulSoup(resp.text, 'html.parser')
+
+        urls = [self.target_url]
         for one_page_data in self.get_one_page():
             all_data = all_data + one_page_data
 
@@ -125,7 +138,6 @@ def _run_unittests():
     """
     import responses
     import unittest
-    from io import StringIO
 
     class TestCrawler(unittest.TestCase):
         """
@@ -136,33 +148,35 @@ def _run_unittests():
             """
             setup test data
             """
-            struct_node = lambda tag, cls_attr, target, text, next_node:\
-                '{' + '"tag":"{0}", "class":"{1}", "target":"{2}", "text":"{3}", "next":"{4}"'.\
-                format(tag, cls_attr, target, text, next_node) + '}'
+            struct_node = lambda tag, cls_attr, target, text:\
+                {'tag':tag, 'class':cls_attr, 'target':target, 'text':text}
 
-            struct = '{' + '"item_folder":{0}, "item":{1}, "next_page":{2}'.format(\
-                    struct_node("body", "null", "null", "null",\
-                        struct_node("div", "first_level", "null", "null",\
-                                struct_node("div", "second_level", "text", "null", "null")\
-                            )\
-                        ),\
-                    struct_node("div", "item", "null", "null",\
-                        struct_node("h3", "item_title", "null", "null",\
-                            struct_node("a", "item_title_desription", "title", "null", "null")\
-                        )\
-                    ),\
-                    struct_node("div", "pagination js-pages", "null", "null",\
-                        struct_node("div", "pagination-nav clearfix", "null", "null",\
-                            struct_node("a", "pagination-nav js-pagination-next",\
-                                "herf", "Следующая страница", "null")\
-                        )\
-                    )\
-            ) + '}'
-            print('\n', struct, '\n')
-            self.struct_json = StringIO(struct)
+            self._struct_json = json.dumps({'items':\
+                struct_node('a', 'item_title_desription', 'title', None),\
+                'next_page':struct_node('a', 'pagination-nav js-pagination-next',\
+                    'herf', 'Следующая страница')})
 
-            self.first_url = 'http://test.com/catalog/1'
-            self.second_url = 'http://test.com/catalog/2'
+#            self._struct_json = '{' + '"item_folder":{0}, "item":{1}, "next_page":{2}'.format(\
+#                    struct_node("body", "null", "null", "null",\
+#                        struct_node("div", "first_level", "null", "null",\
+#                                struct_node("div", "second_level", "text", "null", "null")\
+#                            )\
+#                        ),\
+#                    struct_node("div", "item", "null", "null",\
+#                        struct_node("h3", "item_title", "null", "null",\
+#                            struct_node("a", "item_title_desription", "title", "null", "null")\
+#                        )\
+#                    ),\
+#                    struct_node("div", "pagination js-pages", "null", "null",\
+#                        struct_node("div", "pagination-nav clearfix", "null", "null",\
+#                            struct_node("a", "pagination-nav js-pagination-next",\
+#                                "herf", "Следующая страница", "null")\
+#                        )\
+#                    )\
+#            ) + '}'
+
+            self._first_url = 'http://test.com/catalog/1'
+            self._second_url = 'http://test.com/catalog/2'
 
             head = '<html><head><title>Page title</title></head>'
             html_node = lambda tag, attr, attr_value, text: '<{0} {1}="{2}">{3}</{0}>'.\
@@ -176,6 +190,28 @@ def _run_unittests():
 
             second_item = html_node('div', 'class', 'item',\
                  html_node('h3', 'class', 'item_title',\
+                    html_node('a', 'class', 'item_title_desription', '1_p SECOND ITEM')))
+
+            body = html_node('body', 'class', ' ',\
+                html_node('div', 'class', 'first_level',\
+                     html_node('div', 'class', 'second_level', (first_item + second_item)\
+                    )\
+                ) +\
+                html_node('div', 'class', 'pagination js-pages',\
+                    html_node('div', 'class', 'pagination-nav clearfix',\
+                        html_a_node('a', 'pagination-nav js-pagination-next', self._second_url,\
+                         'Следующая страница →'))\
+                )\
+            )
+
+            self._first_html = head + body
+
+            first_item = html_node('div', 'class', 'item',\
+                 html_node('h3', 'class', 'item_title',\
+                    html_node('a', 'class', 'item_title_desription', '2_p FIRST ITEM')))
+
+            second_item = html_node('div', 'class', 'item',\
+                 html_node('h3', 'class', 'item_title',\
                     html_node('a', 'class', 'item_title_desription', '2_p SECOND ITEM')))
 
             body = html_node('body', 'class', ' ',\
@@ -185,25 +221,22 @@ def _run_unittests():
                 ) +\
                 html_node('div', 'class', 'pagination js-pages',\
                     html_node('div', 'class', 'pagination-nav clearfix',\
-                        html_a_node('a', 'pagination-nav js-pagination-next', self.second_url,\
-                         'Следующая страница →'))\
+                        html_a_node('a', 'pagination-nav js-pagination-next', self._first_url,\
+                         '← Предыдущая'))\
                 )\
             )
+            self._second_html = head + body
 
-            self.first_html = head + body
-
-            print('\n', self.first_html, '\n')
-
-            self.second_html = None
-
-            responses.add(responses.GET, self.first_url, self.first_html, status=200)
-            responses.add(responses.GET, self.second_url, self.second_html, status=200)
+            responses.add(responses.GET, self._first_url, self._first_html, status=200)
+            responses.add(responses.GET, self._second_url, self._second_html, status=200)
 
         def test_get_html_from_url(self):
             """
             test get html
             """
-            print(2)
+            crawler = Crawler(target_url=self._first_url)
+            crawler._struct = json.loads(self._struct_json)
+#            crawler.get_one_page()
 
         def test_get_next_page(self):
             """
