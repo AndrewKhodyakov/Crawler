@@ -14,12 +14,25 @@ from itertools import count
 from bs4 import BeautifulSoup
 import requests
 
-def _get_data_by_struct(struct, soup, marker=None,add_text=False):
+def _get_data_by_struct(struct, soup, string=False,add_text=False):
     """
+    struct: html element description
+    soup: BeautifulSoup instance
+    string: True/False - add text description to query
+    add_text: True/False - add text value to result
     """
     out = []
-    for inst in soup.body.findAll(struct.get('tag'),\
-        class_=struct.get('class'), string=marker):
+    if string:
+        result = soup.body.findAll(struct.get('tag'),\
+        string=struct.get('text'))
+        print(123, result)
+    else:
+        result = soup.body.findAll(struct.get('tag'),\
+         class_=struct.get('class'))
+
+#    for inst in soup.body.findAll(struct.get('tag'),\
+#        class_=struct.get('class'), string=string):
+    for inst in result:
         target = struct.get('target')
 
         if add_text:
@@ -102,9 +115,18 @@ class  Crawler:
         soup = BeautifulSoup(resp.text, 'html.parser')
         one_page_data = _get_data_by_struct(self._struct.get('items'), soup)
 
-        next_url = _get_data_by_struct(self._struct.get('next_page'),\
-             soup, marker=self._struct.get('text'), add_text=True)
-        next_url = next_url.pop()
+        try:
+            if self._struct.get('next_page').get('text') is None:
+               string=False 
+            else:
+               string=True
+
+            next_url = _get_data_by_struct(self._struct.get('next_page'),\
+                 soup, string=string, add_text=True)
+            next_url = next_url.pop()
+        except SyntaxError as e:
+            print(e)
+            next_url = ['', '']
 
         return one_page_data, next_url
 
@@ -114,21 +136,26 @@ class  Crawler:
         Get all data from target url by installed struct
         """
         all_data = []
-        page_marker = None
+#        page_marker = None
         next_url = [self._target_url]
         _count = count()
+
         while next_url is not None:
-            one_page_data, next_url = self.get_one_page_data(next_url[0])
+            one_page_data, next_url = self.get_one_page_data(
+                next_url[0])
 
             if save_to_file:
                 self._save_to_file(('./' + str(next(_count)) + '.csv'), one_page_data)
 
             all_data = all_data + one_page_data
-            if not page_marker:
-                page_marker = next_url[1]
+
+            if self._struct.get('next_page').get('text') is None:
+                self._struct.get('next_page')['text'] = next_url[1]
+#                page_marker = next_url[1]
 
             next_url[0] = self._base_url + next_url[0]
-            if  page_marker != next_url[1]:
+#            if  page_marker != next_url[1]:
+            if self._struct.get('next_page').get('text') != next_url[1]:
                 next_url = None
 
         self._save_to_file(('./all_data.csv'), all_data)
@@ -177,7 +204,7 @@ def _run_unittests():
             self._struct_json = json.dumps({'items':\
                 struct_node('a', 'item_title_desription', 'title', None),\
                 'next_page':struct_node('a', 'pagination-nav js-pagination-next',\
-                    'herf', 'Следующая страница')})
+                    'herf', None)})
 
             self._first_url = 'http://test.com/catalog/1'
             self._second_url = 'http://test.com/catalog/2'

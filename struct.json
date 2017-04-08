@@ -8,6 +8,6 @@
     "tag": "a",
     "class": "pagination-page js-pagination-next",
     "target":"href",
-    "text": "Следующая страница →"
+    "text": null
     }
 }
