@@ -7,7 +7,7 @@
 "next_page":{
     "tag": "a",
     "class": "pagination-page js-pagination-next",
-    "target":"herf",
+    "target":"href",
     "text": "Следующая страница →"
     }
 }

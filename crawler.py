@@ -5,18 +5,21 @@
 """
 import os
 import sys
+import time
 import json
 import csv
+import pandas as pd
+from itertools import count
 
 from bs4 import BeautifulSoup
 import requests
 
-def _get_data_by_struct(struct, soup, add_text=False):
+def _get_data_by_struct(struct, soup, marker=None,add_text=False):
     """
     """
     out = []
-    for inst in soup.body.findAll(\
-        struct.get('tag'), class_=struct.get('class')):
+    for inst in soup.body.findAll(struct.get('tag'),\
+        class_=struct.get('class'), string=marker):
         target = struct.get('target')
 
         if add_text:
@@ -73,10 +76,12 @@ class  Crawler:
         set target url
         target_url: target url
         """
-        if  target_url.split('://')[0] != 'http':
+        split_url = target_url.split('/')
+        if  'http' not in split_url[0]:
             msg = 'Check target url {}'.format(target_url)
             raise SyntaxError(msg)
 
+        self._base_url = '{0}//{1}'.format(split_url[0], split_url[2])
         self._target_url = target_url
 
 
@@ -84,6 +89,10 @@ class  Crawler:
         """
         get one page generator
         """
+        print('\t','-'*10)
+        print('Sent requests to url: {}'.format(url))
+
+        time.sleep(1)
         resp = requests.get(url)
         if resp.status_code != 200:
             msg = 'url - is not available, status code {}'.format(\
@@ -94,31 +103,44 @@ class  Crawler:
         one_page_data = _get_data_by_struct(self._struct.get('items'), soup)
 
         next_url = _get_data_by_struct(self._struct.get('next_page'),\
-             soup, add_text=True)
+             soup, marker=self._struct.get('text'), add_text=True)
         next_url = next_url.pop()
 
         return one_page_data, next_url
 
 
-    def get_all_pages_data(self):
+    def get_all_pages_data(self, save_to_file=False):
         """
         Get all data from target url by installed struct
         """
         all_data = []
         page_marker = None
         next_url = [self._target_url]
+        _count = count()
         while next_url is not None:
             one_page_data, next_url = self.get_one_page_data(next_url[0])
-            all_data = all_data + one_page_data
 
+            if save_to_file:
+                self._save_to_file(('./' + str(next(_count)) + '.csv'), one_page_data)
+
+            all_data = all_data + one_page_data
             if not page_marker:
                 page_marker = next_url[1]
 
+            next_url[0] = self._base_url + next_url[0]
             if  page_marker != next_url[1]:
                 next_url = None
 
+        self._save_to_file(('./all_data.csv'), all_data)
         return all_data
 
+    def _save_to_file(self, f_name, data):
+        """
+        save data
+        """
+        with open(f_name, 'wt') as csv_file:
+            writer = csv.writer(csv_file, delimiter=',')
+            writer.writerows([data])
 
     def __repr__(self):
         """
@@ -127,13 +149,12 @@ class  Crawler:
         print('Crowler, config: {}, url in_work: {}'.format(\
             self._config_path, self._target_url))
 
-def _get_mode(struct_path, url):
+def _run(struct_path, url):
     """
     Get data from url
     """
     crawler = Crawler(struct_path, url)
-    data = crawler.get_all_pages_data()
-    print(crawler, len(data))
+    data = crawler.get_all_pages_data(save_to_file=True)
 
 def _run_unittests():
     """
@@ -185,7 +206,7 @@ def _run_unittests():
                 ) +\
                 html_node('div', 'class', 'pagination js-pages',\
                     html_node('div', 'class', 'pagination-nav clearfix',\
-                        html_a_link_node('a', 'pagination-nav js-pagination-next', self._second_url,\
+                        html_a_link_node('a', 'pagination-nav js-pagination-next', '/catalog/2',\
                          'Следующая страница →'))\
                 )\
             )
@@ -206,7 +227,7 @@ def _run_unittests():
                 ) +\
                 html_node('div', 'class', 'pagination js-pages',\
                     html_node('div', 'class', 'pagination-nav clearfix',\
-                        html_a_link_node('a', 'pagination-nav js-pagination-next', self._first_url,\
+                        html_a_link_node('a', 'pagination-nav js-pagination-next', '/catalog/1',\
                          '← Предыдущая'))\
                 )\
             )
@@ -224,7 +245,7 @@ def _run_unittests():
             crawler.set_struct(json.loads(self._struct_json))
             data, url = crawler.get_one_page_data(crawler._target_url)
             self.assertListEqual(data, ['1_p FIRST ITEM', '1_p SECOND ITEM'])
-            self.assertEqual(url[0], self._second_url)
+            self.assertEqual(url[0], '/catalog/2')
 
         @responses.activate
         def test_get_next_page(self):
@@ -260,13 +281,13 @@ def _read_args_and_run():
         '\t' + '--run_self_test - for run unittests;\n' +\
         '\t' + '--get_data url_to_html - for read from url.\n'
 
-    if (n_arg > 1) & (n_arg <= 3):
+    if (n_arg > 1) & (n_arg <= 4):
 
         if (n_arg == 2) & ('--run_self_test' in arg[1]):
             _run_unittests()
 
         elif (n_arg == 4) & ('--get_data' in arg[1]):
-            _get_mode(arg[2], arg[3])
+            _run(arg[2], arg[3])
 
         else:
             print(help_msg)
