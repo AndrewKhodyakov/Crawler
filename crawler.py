@@ -286,7 +286,7 @@ def _run_unittests():
             """
             test get html
             """
-            pass
+            self.assertTrue(os.path.exists('./all_data.csv'))
 
     suite = unittest.TestSuite()
     suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestCrawler))

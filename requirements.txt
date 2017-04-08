@@ -6,3 +6,4 @@ pyparsing==2.2.0
 requests==2.13.0
 responses==0.5.1
 six==1.10.0
+pandas==0.19.2

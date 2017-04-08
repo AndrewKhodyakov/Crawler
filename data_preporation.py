@@ -23,6 +23,7 @@ def join_data():
 
 def count_all():
     """
+    Count all
     """
     print('\n', '-'*50)
     frame = pd.read_csv('./all_data.csv', index_col=0, header=None)
