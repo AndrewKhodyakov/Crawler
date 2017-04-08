@@ -25,13 +25,10 @@ def _get_data_by_struct(struct, soup, string=False,add_text=False):
     if string:
         result = soup.body.findAll(struct.get('tag'),\
         string=struct.get('text'))
-        print(123, result)
     else:
         result = soup.body.findAll(struct.get('tag'),\
          class_=struct.get('class'))
 
-#    for inst in soup.body.findAll(struct.get('tag'),\
-#        class_=struct.get('class'), string=string):
     for inst in result:
         target = struct.get('target')
 
@@ -124,8 +121,8 @@ class  Crawler:
             next_url = _get_data_by_struct(self._struct.get('next_page'),\
                  soup, string=string, add_text=True)
             next_url = next_url.pop()
+
         except SyntaxError as e:
-            print(e)
             next_url = ['', '']
 
         return one_page_data, next_url
@@ -133,10 +130,9 @@ class  Crawler:
 
     def get_all_pages_data(self, save_to_file=False):
         """
-        Get all data from target url by installed struct
+        Get all data from target url by struct
         """
         all_data = []
-#        page_marker = None
         next_url = [self._target_url]
         _count = count()
 
@@ -151,10 +147,9 @@ class  Crawler:
 
             if self._struct.get('next_page').get('text') is None:
                 self._struct.get('next_page')['text'] = next_url[1]
-#                page_marker = next_url[1]
 
             next_url[0] = self._base_url + next_url[0]
-#            if  page_marker != next_url[1]:
+
             if self._struct.get('next_page').get('text') != next_url[1]:
                 next_url = None
 
